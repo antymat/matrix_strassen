@@ -34,10 +34,13 @@ size_t get_extra_mem_size(uint32_t N)
 {
   size_t ret = 0;
   //normalize the dimension to be "2^n - 1" (MSBs only 0, LSBs only 1)
-  N = LSB_BIT_FILL(N-1);
-  //find the n from "2^n - 1"
-  N = LOG_BASE_2(N) << 1;
-  ret  = (1 << N) - 1;
+  ret = LSB_BIT_FILL(N-1);
+  ++ret;
+  ret *= ret;
+  --ret;
+  ////find the n from "2^n - 1"
+  //ret = LOG_BASE_2(ret) << 1;
+  //ret  = (1 << N) - 1;
   ret /= (4 - 1);
 
   return (ret << 3) - ret;
