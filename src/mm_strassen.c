@@ -36,6 +36,19 @@ typedef int32_t data_t;
 
 #define MATRIX_PARTITION(M, M_row_len, dx, dy) ((M) + (dx) + (M_row_len) * (dy))
 
+void print_matrix(uint8_t *name, data_t *A, uint32_t row_len, uint32_t dim) 
+{
+  uint32_t i, j;
+  assert(row_len >= dim);
+  printf("%s = \n", name);
+  for(i=0; i<dim; i++) {
+    for(j=0; j<dim; j++) {
+      printf("%d\t", (uint32_t)A[i*row_len+j]);
+    }
+    printf("\n");
+  }
+}
+
 size_t get_extra_array_size(uint32_t N)
 {
   size_t ret = 0;
@@ -237,20 +250,41 @@ void mult_strassen_r(data_t *C, uint32_t C_rowlen_log,
           T1, dim_log,
           dim_log, helper);
     }
+    
+    //print_matrix("M1",  M1,  1UL << M1_rowlen_log,  1UL << dim_log);
+    //print_matrix("M2",  M2,  1UL << M2_rowlen_log,  1UL << dim_log);
+    //print_matrix("M3",  M3,  1UL << M3_rowlen_log,  1UL << dim_log);
+    //print_matrix("M4",  M4,  1UL << M4_rowlen_log,  1UL << dim_log);
+    //print_matrix("M5",  M5,  1UL << M5_rowlen_log,  1UL << dim_log);
+    //print_matrix("M6",  M6,  1UL << M6_rowlen_log,  1UL << dim_log);
+    //print_matrix("M7",  M7,  1UL << M7_rowlen_log,  1UL << dim_log);
+    //printf("--------------------------------------------------------------------------------\n");
+    //print_matrix("C11",  C11,  1UL << C_rowlen_log,  1UL << dim_log);
+    //print_matrix("C12",  C12,  1UL << C_rowlen_log,  1UL << dim_log);
+    //print_matrix("C21",  C21,  1UL << C_rowlen_log,  1UL << dim_log);
+    //print_matrix("C22",  C22,  1UL << C_rowlen_log,  1UL << dim_log);
+    //printf("--------------------------------------------------------------------------------\n");
+
     {
       //calculate C11
       matrix_sub(C11, C_rowlen_log,
           M5, M5_rowlen_log,
           C11, C_rowlen_log,
           dim_log);
+    //print_matrix("C11",  C11,  1UL << C_rowlen_log,  1UL << dim_log);
+    //printf("--------------------------------------------------------------------------------\n");
       matrix_add(C11, C_rowlen_log,
           M4, M4_rowlen_log,
           C11, C_rowlen_log,
           dim_log);
+    //print_matrix("C11",  C11,  1UL << C_rowlen_log,  1UL << dim_log);
+    //printf("--------------------------------------------------------------------------------\n");
       matrix_add(C11, C_rowlen_log,
           M1, M1_rowlen_log,
           C11, C_rowlen_log,
           dim_log);
+    //print_matrix("C11",  C11,  1UL << C_rowlen_log,  1UL << dim_log);
+    //printf("--------------------------------------------------------------------------------\n");
     }
     {
       //calculate C12
@@ -269,7 +303,7 @@ void mult_strassen_r(data_t *C, uint32_t C_rowlen_log,
           M3, M3_rowlen_log,
           C22, C_rowlen_log,
           dim_log);
-      matrix_add(C11, C_rowlen_log,
+      matrix_add(C22, C_rowlen_log,
           M1, M1_rowlen_log,
           C22, C_rowlen_log,
           dim_log);
@@ -281,6 +315,11 @@ void mult_strassen_r(data_t *C, uint32_t C_rowlen_log,
           C21, C_rowlen_log,
           dim_log);
     }
+    //print_matrix("C11",  C11,  1UL << C_rowlen_log,  1UL << dim_log);
+    //print_matrix("C12",  C12,  1UL << C_rowlen_log,  1UL << dim_log);
+    //print_matrix("C21",  C21,  1UL << C_rowlen_log,  1UL << dim_log);
+    //print_matrix("C22",  C22,  1UL << C_rowlen_log,  1UL << dim_log);
+    //printf("--------------------------------------------------------------------------------\n");
   }
   return;
 
@@ -360,14 +399,14 @@ int32_t mult_strassen(data_t *C, data_t *B, data_t *A, const uint32_t N)
   //do things here.
   mult_strassen_r(LC, dim_log, LB, dim_log, LA, dim_log, dim_log, helper);
 
-
+  print_matrix("LC", LC, N, N);
 
   //copy the result back to C
   matrix_copy(C, N, LC, dim);
 
   //free the memory
   for(i = dim_log; i;) {
-    free(helper[i]);
+    free(helper[--i]);
   }
   free(helper);
   helper=NULL;
@@ -375,27 +414,61 @@ int32_t mult_strassen(data_t *C, data_t *B, data_t *A, const uint32_t N)
 }
 
 
-void print_matrix(uint8_t *name, data_t *A, uint32_t dim) 
-{
-  uint32_t i, j;
-  printf("%s = \n", name);
-  for(i=0; i<dim; i++) {
-    for(j=0; j<dim; j++) {
-      printf("%d\t", (uint32_t)A[i*dim+j]);
-    }
-    printf("\n");
-  }
-}
-
 int main(int argc, char *argv[]) {
   int size = 8;
   uint32_t A[] = { 1, 2, 3, 4 }, B[] = {1, 0, 0, 1}, C[4] = {0, 0, 0, 0};
-  print_matrix("A", A, 2);
-  print_matrix("B", B, 2);
-  print_matrix("C", C, 2);
+  //uint32_t A[] = { 1, 2, 3, 4 }, B[] = {2, 0, 0, 2}, C[4] = {0, 0, 0, 0};
+  print_matrix("A", A, 2, 2);
+  print_matrix("B", B, 2, 2);
+  print_matrix("C", C, 2, 2);
 
   mult_strassen(C, B, A, 2);
-  print_matrix("C", C, 2);
+  print_matrix("C", C, 2, 2);
+  printf("--------------------------------------------------------------------------------\n");
+  printf("--------------------------------------------------------------------------------\n");
+  printf("--------------------------------------------------------------------------------\n");
+
+  B[0] = B[3] = 2;
+  C[0] = C[1] = C[2] = C[3] = 0;
+  print_matrix("A", A, 2, 2);
+  print_matrix("B", B, 2, 2);
+  print_matrix("C", C, 2, 2);
+  mult_strassen(C, B, A, 2);
+  print_matrix("C", C, 2, 2);
+  {
+    uint32_t A[16*16], B[16*16], C[16*16];
+    uint32_t i;
+    for(i=0; i<16*16; i++) { A[i] = i; B[i] = 0;}
+    for(i=0; i<16; i++) B[17*i] = 2; 
+    print_matrix("A", A, 16, 16);
+    print_matrix("B", B, 16, 16);
+    print_matrix("C", C, 16, 16);
+    mult_strassen(C, B, A, 16);
+    print_matrix("C", C, 16, 16);
+  }
+  {
+    uint32_t A[16], B[16], C[16];
+    uint32_t i;
+    for(i=0; i<16; i++) { A[i] = i; B[i] = i;}
+    print_matrix("A", A, 4, 4);
+    print_matrix("B", B, 4, 4);
+    print_matrix("C", C, 4, 4);
+    mult_strassen(C, B, A, 4);
+    print_matrix("C", C, 4, 4);
+  }
+  {
+    uint32_t A[9], B[9], C[9];
+    uint32_t i;
+    for(i=0; i<9; i++) { A[i] = i; B[i] = i;}
+    print_matrix("A", A, 3, 3);
+    print_matrix("B", B, 3, 3);
+    print_matrix("C", C, 3, 3);
+    mult_strassen(C, B, A, 3);
+    print_matrix("C", C, 3, 3);
+  }
+
+
+
 
   printf("Ala ma asa\n");
   printf("Mem needed for array size %d = %d\n", size, get_extra_array_size(size));
