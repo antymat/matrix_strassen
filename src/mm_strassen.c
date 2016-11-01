@@ -28,7 +28,7 @@
   _y = (_y & 0x0000ffff) + ((_y >> 16) & 0x0000ffff); \
   _y; \
 })
-#define HELPER_ARRAY_CNT 7u
+#define HELPER_ARRAY_CNT 5u
 
 size_t get_extra_array_size(uint32_t N) 
 {
@@ -41,10 +41,10 @@ size_t get_extra_array_size(uint32_t N)
   --ret;                          //finish the numerator (4^n - 1)
   ret /= (4 - 1);                 //divide by the denominator ((4^n - 1)/(4 - 1))
   //now ret = SUM(i=0,n){4^i}
-  return (ret << 3) - ret; //times 7 (we need 7 additional helper arrays).
+  return ret * HELPER_ARRAY_CNT; //we need 5 helper arrays. 
 }
 
-void mult_strassen_r(int32_t *C, int32_t *B, int32_t *A, uint32_t N_limit, int32_t *helper, uint32_t N_norm) 
+void mult_strassen_r(data_t *C, data_t *B, data_t *A, uint32_t N_limit, data_t *helper, uint32_t N_norm) 
 {
   int32_t *M[HELPER_ARRAY_CNT];//helper arrays, so there is less pointer arithmetic
   uint32_t i;
@@ -55,15 +55,63 @@ void mult_strassen_r(int32_t *C, int32_t *B, int32_t *A, uint32_t N_limit, int32
 
 }
 
-int32_t mult_strassen(int32_t *C, int32_t *B, int32_t *A, uint32_t N)
+
+
+void matrix_copy(data_t *O, uint32_t O_dim, data_t *N, uint32_t dim) 
 {
+  uint32_t i, j;
+  assert(N); 
+  assert(O); 
+  for (i=0; i<O_dim, i++) {
+    for (j=0; j<O_dim, j++) {
+      N[i*dim + j] = O[i*O_dim + j]; 
+    }
+  }
+  return N;
+}
+
+
+
+/**
+* @brief Staring the computations.
+*
+* This function will normalise the matrices, so they are 2^n x 2^n (as Strassen algorighm expects). Since the task specificaton requeries the matrices to be NxN only, there might be some expanding to be done. 
+* This is an inefficiency of this implementation, for the sake of (relative) simplicity.
+*
+* @param C - output matrix,
+* @param B - input matrix 2,
+* @param A - input matrix 1,
+* @param N - dimension (like N form NxN).
+*
+* @return No idea yet. 
+*/
+int32_t mult_strassen(data_t *C, const data_t *B, const data_t *A, const uint32_t N)
+{
+  data_t *LA = , *LB = B, *LC = C;
+  uint32_t dim = N;
   size_t array_offset = 0;
   int32_t *helper;
   assert(A);
   assert(B);
   assert(C);
   assert(N);
-  assert(!(N&0xffffC000));    //let's assume no more than (2^15)^2 array elements (4BG per array of int32_t).
+
+  if(!CHECK_POWER_OF_2(dim)) {
+    //we have some expanding to do - but only once
+    //first - get the dimension to 2^n>N>2^(n-1)
+    dim = LSB_BIT_FILL(dim - 1); 
+    dim ++; 
+    LA = calloc(dim * dim, sizeof(data_t));
+    LB = calloc(dim * dim, sizeof(data_t));
+    LC = calloc(dim * dim, sizeof(data_t));
+
+    LA = matrix_copy(A, N, LA, dim);
+    LB = matrix_copy(A, N, LB, dim);
+    LA = matrix_copy(A, N, LC, dim);
+  }
+  //now we can split the matrices in 4 up to the point they are single data_t element
+
+
   //the memory is allocated once only and reused
   helper = calloc(get_extra_array_size(N), sizeof(A[0]));
   assert(helper);
