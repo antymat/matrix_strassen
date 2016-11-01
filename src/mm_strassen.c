@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef int32_t data_t;
 
@@ -95,7 +96,7 @@ void mult_strassen_r(data_t *C, uint32_t C_rowlen_log,
     *C = *A * *B;
     return;
   }
-  --dim_log;
+  --dim_log; //divide the matrices into 4
   {
     //this is the hard case
     data_t *H[HELPER_ARRAY_CNT];//helper arrays, so there is less pointer arithmetic
@@ -295,12 +296,11 @@ void matrix_copy(data_t *N, uint32_t N_dim, data_t *O, uint32_t O_dim)
   assert(N);
   assert(O);
   dim  = O_dim < N_dim ? O_dim : N_dim;
-  for (i=0; i<dim, i++) {
-    for (j=0; j<dim, j++) {
+  for (i=0; i<dim; i++) {
+    for (j=0; j<dim; j++) {
       N[i*N_dim + j] = O[i*O_dim + j];
     }
   }
-  return N;
 }
 
 
@@ -318,9 +318,9 @@ void matrix_copy(data_t *N, uint32_t N_dim, data_t *O, uint32_t O_dim)
 *
 * @return No idea yet.
 */
-int32_t mult_strassen(data_t *C, const data_t *B, const data_t *A, const uint32_t N)
+int32_t mult_strassen(data_t *C, data_t *B, data_t *A, const uint32_t N)
 {
-  data_t *LA = , *LB = B, *LC = C;
+  data_t *LA = A, *LB = B, *LC = C;
   uint32_t dim = N; //this will be the 2^n dimension value.
   uint32_t i;
   uint32_t dim_log;
@@ -341,9 +341,9 @@ int32_t mult_strassen(data_t *C, const data_t *B, const data_t *A, const uint32_
     LB = calloc(dim * dim, sizeof(data_t));
     LC = calloc(dim * dim, sizeof(data_t));
 
-    LA = matrix_copy(LA, dim, A, N);
-    LB = matrix_copy(LB, dim, B, N);
-    LA = matrix_copy(LC, dim, C, N);
+    matrix_copy(LA, dim, A, N);
+    matrix_copy(LB, dim, B, N);
+    matrix_copy(LC, dim, C, N);
   }
   //now we can split the matrices in 4 up to the point they are single data_t element
 
@@ -375,8 +375,28 @@ int32_t mult_strassen(data_t *C, const data_t *B, const data_t *A, const uint32_
 }
 
 
+void print_matrix(uint8_t *name, data_t *A, uint32_t dim) 
+{
+  uint32_t i, j;
+  printf("%s = \n", name);
+  for(i=0; i<dim; i++) {
+    for(j=0; j<dim; j++) {
+      printf("%d\t", (uint32_t)A[i*dim+j]);
+    }
+    printf("\n");
+  }
+}
+
 int main(int argc, char *argv[]) {
   int size = 8;
+  uint32_t A[] = { 1, 2, 3, 4 }, B[] = {1, 0, 0, 1}, C[4] = {0, 0, 0, 0};
+  print_matrix("A", A, 2);
+  print_matrix("B", B, 2);
+  print_matrix("C", C, 2);
+
+  mult_strassen(C, B, A, 2);
+  print_matrix("C", C, 2);
+
   printf("Ala ma asa\n");
   printf("Mem needed for array size %d = %d\n", size, get_extra_array_size(size));
   return 0;
