@@ -46,6 +46,33 @@ size_t get_extra_array_size(uint32_t N)
   return ret * HELPER_ARRAY_CNT; //we need some helper arrays. 
 }
 
+
+void matrix_sub(data_t *result, uint32_t r_rowlen_log, 
+    data_t *B, uint32_t B_rowlen_log, 
+    data_t *A, uint32_t A_rowlen_log, 
+    uint32_t dim_log) 
+{
+  uint32_t i, j; 
+  for (i=0; i < 1UL<<dim_log; i++) {
+    for(j=0; j < 1UL<<dim_log; j++) {
+      result[i * r_rowlen_log + j] = A[i * A_rowlen_log + j] - B[i * B_rowlen_log + j];
+    }
+  }
+}
+
+void matrix_add(data_t *result, uint32_t r_rowlen_log, 
+    data_t *B, uint32_t B_rowlen_log, 
+    data_t *A, uint32_t A_rowlen_log, 
+    uint32_t dim_log) 
+{
+  uint32_t i, j; 
+  for (i=0; i < 1UL<<dim_log; i++) {
+    for(j=0; j < 1UL<<dim_log; j++) {
+      result[i * r_rowlen_log + j] = A[i * A_rowlen_log + j] + B[i * B_rowlen_log + j];
+    }
+  }
+}
+
 void mult_strassen_r(data_t *C, uint32_t C_rowlen_log, 
     data_t *B, uint32_t B_rowlen_log, 
     data_t *A, uint32_t A_rowlen_log, 
@@ -67,6 +94,7 @@ void mult_strassen_r(data_t *C, uint32_t C_rowlen_log,
   for(i=0; i<HELPER_ARRAY_CNT; i++) {
     M[i] = helper[dim_log] + i*(1UL<<dim_log);
   } 
+
 
 }
 
