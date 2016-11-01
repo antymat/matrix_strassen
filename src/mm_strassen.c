@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-typedef data_t int32_t;
+typedef int32_t data_t;
 
 #define CHECK_POWER_OF_2(_x) (!((_x)&((_x)-1)))
 #define LSB_BIT_FILL(x) ({\
