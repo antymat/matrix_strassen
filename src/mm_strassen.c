@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+typedef data_t int32_t; 
+
 #define CHECK_POWER_OF_2(_x) (!((_x)&((_x)-1)))
 #define LSB_BIT_FILL(x) ({\
   __auto_type _y = (x);     \
@@ -41,30 +43,45 @@ size_t get_extra_array_size(uint32_t N)
   --ret;                          //finish the numerator (4^n - 1)
   ret /= (4 - 1);                 //divide by the denominator ((4^n - 1)/(4 - 1))
   //now ret = SUM(i=0,n){4^i}
-  return ret * HELPER_ARRAY_CNT; //we need 5 helper arrays. 
+  return ret * HELPER_ARRAY_CNT; //we need some helper arrays. 
 }
 
-void mult_strassen_r(data_t *C, data_t *B, data_t *A, uint32_t N_limit, data_t *helper, uint32_t N_norm) 
+void mult_strassen_r(data_t *C, uint32_t C_rowlen_log, 
+    data_t *B, uint32_t B_rowlen_log, 
+    data_t *A, uint32_t A_rowlen_log, 
+    uint32_t dim_log, data_t **helper) 
 {
-  int32_t *M[HELPER_ARRAY_CNT];//helper arrays, so there is less pointer arithmetic
+  data_t *M[HELPER_ARRAY_CNT];//helper arrays, so there is less pointer arithmetic
   uint32_t i;
-  N_norm >>= 1;
-  for(i=0; i<HELPER_ARRAY_CNT; i++) {
-    M[i] = helper + i*N_norm; //there are 7 half-input-dimension helper arrays
+  --dim_log;
+  if(!dim_log) {
+    //the matrices have degenerated to the single data_t elements
+    //this is the easy case - just multiply them, and
+    //end the recursion
+    *C = *A * *B;
+    return;
   }
+  //this is the hard case
+
+  //ease the pointer operations a bit
+  for(i=0; i<HELPER_ARRAY_CNT; i++) {
+    M[i] = helper[dim_log] + i*(1UL<<dim_log);
+  } 
 
 }
 
 
 
-void matrix_copy(data_t *O, uint32_t O_dim, data_t *N, uint32_t dim) 
+void matrix_copy(data_t *N, uint32_t N_dim, data_t *O, uint32_t O_dim) 
 {
   uint32_t i, j;
+  uint32_t dim;
   assert(N); 
   assert(O); 
-  for (i=0; i<O_dim, i++) {
-    for (j=0; j<O_dim, j++) {
-      N[i*dim + j] = O[i*O_dim + j]; 
+  dim  = O_dim < N_dim ? O_dim : N_dim; 
+  for (i=0; i<dim, i++) {
+    for (j=0; j<dim, j++) {
+      N[i*N_dim + j] = O[i*O_dim + j]; 
     }
   }
   return N;
@@ -88,9 +105,11 @@ void matrix_copy(data_t *O, uint32_t O_dim, data_t *N, uint32_t dim)
 int32_t mult_strassen(data_t *C, const data_t *B, const data_t *A, const uint32_t N)
 {
   data_t *LA = , *LB = B, *LC = C;
-  uint32_t dim = N;
+  uint32_t dim = N; //this will be the 2^n dimension value. 
+  uint32_t i; 
+  uint32_t dim_log; 
   size_t array_offset = 0;
-  int32_t *helper;
+  data_t **helper;
   assert(A);
   assert(B);
   assert(C);
@@ -105,19 +124,34 @@ int32_t mult_strassen(data_t *C, const data_t *B, const data_t *A, const uint32_
     LB = calloc(dim * dim, sizeof(data_t));
     LC = calloc(dim * dim, sizeof(data_t));
 
-    LA = matrix_copy(A, N, LA, dim);
-    LB = matrix_copy(A, N, LB, dim);
-    LA = matrix_copy(A, N, LC, dim);
+    LA = matrix_copy(LA, dim, A, N);
+    LB = matrix_copy(LB, dim, B, N);
+    LA = matrix_copy(LC, dim, C, N);
   }
   //now we can split the matrices in 4 up to the point they are single data_t element
 
 
-  //the memory is allocated once only and reused
-  helper = calloc(get_extra_array_size(N), sizeof(A[0]));
+  //now we create all the helper matrices we will need in future - they are of the same size, and there are LOG_2(dim) sets of them. 
+  dim_log = LOG_BASE_2(dim - 1);
+  helper = malloc(dim_log * sizeof(data_t*));
   assert(helper);
+  for(i = dim_log; i;) {
+    --i;
+    helper[i] = malloc(sizeof(data_t) * (1UL<<i) * (1UL << i)i * HELPER_ARRAY_CNT);
+    assert(helper[i]);
+  }
   //do things here. 
-  mult_strassen_r(C, B, A, N, helper, LSB_BIT_FILL(N-1)+1);
+  mult_strassen_r(LC, dim_log, LB, dim_log, LA, dim_log, dim_log, helper);
 
+
+
+  //copy the result back to C
+  matrix_copy(C, N, LC, dim);
+
+  //free the memory
+  for(i = dim_log; i;) {
+    free(helper[i]);
+  }
   free(helper);
   helper=NULL;
   return 0;
