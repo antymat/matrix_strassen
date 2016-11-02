@@ -13,7 +13,7 @@
 
 #define CHECK_POWER_OF_2(_x) (!((_x)&((_x)-1)))
 
-#define LSB_BIT_FILL(r,x) (\
+#define LSB_BIT_FILL(r,x) do {\
   __auto_type _y = (x);     \
   (_y) |= (_y)>>1;          \
   (_y) |= (_y)>>2;          \
@@ -21,16 +21,16 @@
   (_y) |= (_y)>>8;          \
   (_y) |= (_y)>>16;         \
   (r) = (_y);               \
-)
-#define LOG_BASE_2(x) ({ \
+} while(0)
+#define LOG_BASE_2(r,x) do { \
   __auto_type _y = (x); \
   _y = (_y & 0x55555555) + ((_y >> 1) & 0x55555555); \
   _y = (_y & 0x33333333) + ((_y >> 2) & 0x33333333); \
   _y = (_y & 0x0f0f0f0f) + ((_y >> 4) & 0x0f0f0f0f); \
   _y = (_y & 0x00ff00ff) + ((_y >> 8) & 0x00ff00ff); \
   _y = (_y & 0x0000ffff) + ((_y >> 16) & 0x0000ffff); \
-  _y; \
-})
+  (r) = (_y); \
+} while(0)
 #define HELPER_ARRAY_CNT 5u
 
 
@@ -388,7 +388,7 @@ int32_t mult_strassen(data_t *C, data_t *B, data_t *A, const uint32_t N)
 
 
   //now we create all the helper matrices we will need in future - they are of the same size, and there are LOG_2(dim) sets of them.
-  dim_log = LOG_BASE_2(dim - 1);
+  LOG_BASE_2(dim_log, dim - 1);
   helper = malloc(dim_log * sizeof(data_t*));
   assert(helper);
   for(i = dim_log; i;) {
