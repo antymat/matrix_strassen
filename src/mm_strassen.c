@@ -55,7 +55,7 @@ void print_matrix(uint8_t *name, data_t *A, uint32_t row_len, uint32_t dim)
 * @param A_rowlen_log log_2(matrix A row length)
 * @param dim_log log_2(matrix dimension)
 */
-void matrix_sub(data_t *result, uint32_t r_rowlen_log,
+void static inline matrix_sub(data_t *result, uint32_t r_rowlen_log,
     data_t *B, uint32_t B_rowlen_log,
     data_t *A, uint32_t A_rowlen_log,
     uint32_t dim_log)
@@ -88,7 +88,7 @@ void matrix_sub(data_t *result, uint32_t r_rowlen_log,
 * @param A_rowlen_log
 * @param dim_log
 */
-void matrix_add(data_t *result, uint32_t r_rowlen_log,
+void static inline matrix_add(data_t *result, uint32_t r_rowlen_log,
     data_t *B, uint32_t B_rowlen_log,
     data_t *A, uint32_t A_rowlen_log,
     uint32_t dim_log)
@@ -253,7 +253,7 @@ void mult_strassen_r(data_t *C, uint32_t C_rowlen_log,
 * @param O source matrix
 * @param O_dim source matrix dimension. 
 */
-void matrix_copy(data_t *N, uint32_t N_dim, data_t *O, uint32_t O_dim)
+void static inline matrix_copy(data_t *N, uint32_t N_dim, data_t *O, uint32_t O_dim)
 {
   uint32_t i, j;
   uint32_t dim;
