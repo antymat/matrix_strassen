@@ -7,21 +7,21 @@
 */
 #include <assert.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
+#include "mmult_config.h"
 
-typedef int32_t data_t;
 
 #define CHECK_POWER_OF_2(_x) (!((_x)&((_x)-1)))
-#define LSB_BIT_FILL(x) ({\
+
+#define LSB_BIT_FILL(r,x) (\
   __auto_type _y = (x);     \
   (_y) |= (_y)>>1;          \
   (_y) |= (_y)>>2;          \
   (_y) |= (_y)>>4;          \
   (_y) |= (_y)>>8;          \
   (_y) |= (_y)>>16;         \
-  _y;               \
-})
+  (r) = (_y);               \
+)
 #define LOG_BASE_2(x) ({ \
   __auto_type _y = (x); \
   _y = (_y & 0x55555555) + ((_y >> 1) & 0x55555555); \
@@ -53,7 +53,7 @@ size_t get_extra_array_size(uint32_t N)
 {
   size_t ret = 0;
   //normalize the dimension to be "2^n - 1" (MSBs only 0, LSBs only 1)
-  ret = LSB_BIT_FILL(N-1);
+  LSB_BIT_FILL(ret, N-1);
   ++ret;                          //make it power of 2 (ret = 2^n)
   assert(CHECK_POWER_OF_2(ret));  //check that
   ret *= ret;                     //geometric series with base 4, and the power the same as above - so square it (now ret = 4^n)
@@ -372,8 +372,8 @@ int32_t mult_strassen(data_t *C, data_t *B, data_t *A, const uint32_t N)
 
   if(!CHECK_POWER_OF_2(dim)) {
     //we have some expanding to do - but only once
-    //first - get the dimension to 2^n>N>2^(n-1)
-    dim = LSB_BIT_FILL(dim - 1);
+    //first - get the dimension up to 2^n>N>2^(n-1)
+    LSB_BIT_FILL(dim, dim - 1);
     dim ++;
     //need only some of those zeros, but then again - it might still be faster to zero everything.
     LA = calloc(dim * dim, sizeof(data_t));

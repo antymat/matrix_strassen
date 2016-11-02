@@ -7,3 +7,6 @@
 */
 
 
+
+#include "mmult_config.h"
+
