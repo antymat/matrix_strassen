@@ -278,8 +278,8 @@ void matrix_copy(data_t *N, uint32_t N_dim, data_t *O, uint32_t O_dim)
 * This is an inefficiency of this implementation, for the sake of (relative) simplicity.
 *
 * @param C - output matrix,
-* @param B - input matrix 2,
-* @param A - input matrix 1,
+* @param B - multiplier,
+* @param A - multiplicand,
 * @param N - dimension (like N form NxN).
 *
 * @return No idea yet.

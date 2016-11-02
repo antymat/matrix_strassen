@@ -15,6 +15,14 @@
 
 #define CHECK_POWER_OF_2(_x) (!((_x)&((_x)-1)))
 
+/**
+* @brief Set all the bits to the right of the most significant set bit. 
+*
+* @param r result
+* @param x parameter
+*
+* @return r such that all the bits left of a set MSb are 0, and right of it are 1.
+*/
 #define LSB_BIT_FILL(r,x) do {\
   __auto_type _y = (x);     \
   (_y) |= (_y)>>1;          \
