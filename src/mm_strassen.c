@@ -8,33 +8,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "mmult_config.h"
+#include "mm_strassen.h"
 
-
-#define CHECK_POWER_OF_2(_x) (!((_x)&((_x)-1)))
-
-#define LSB_BIT_FILL(r,x) do {\
-  __auto_type _y = (x);     \
-  (_y) |= (_y)>>1;          \
-  (_y) |= (_y)>>2;          \
-  (_y) |= (_y)>>4;          \
-  (_y) |= (_y)>>8;          \
-  (_y) |= (_y)>>16;         \
-  (r) = (_y);               \
-} while(0)
-#define LOG_BASE_2(r,x) do { \
-  __auto_type _y = (x); \
-  _y = (_y & 0x55555555) + ((_y >> 1) & 0x55555555); \
-  _y = (_y & 0x33333333) + ((_y >> 2) & 0x33333333); \
-  _y = (_y & 0x0f0f0f0f) + ((_y >> 4) & 0x0f0f0f0f); \
-  _y = (_y & 0x00ff00ff) + ((_y >> 8) & 0x00ff00ff); \
-  _y = (_y & 0x0000ffff) + ((_y >> 16) & 0x0000ffff); \
-  (r) = (_y); \
-} while(0)
-#define HELPER_ARRAY_CNT 5u
-
-
-#define MATRIX_PARTITION(M, M_row_len, dx, dy) ((M) + (dx) + (M_row_len) * (dy))
 
 void print_matrix(uint8_t *name, data_t *A, uint32_t row_len, uint32_t dim) 
 {
@@ -413,65 +388,4 @@ int32_t mult_strassen(data_t *C, data_t *B, data_t *A, const uint32_t N)
   return 0;
 }
 
-
-int main(int argc, char *argv[]) {
-  int size = 8;
-  uint32_t A[] = { 1, 2, 3, 4 }, B[] = {1, 0, 0, 1}, C[4] = {0, 0, 0, 0};
-  //uint32_t A[] = { 1, 2, 3, 4 }, B[] = {2, 0, 0, 2}, C[4] = {0, 0, 0, 0};
-  print_matrix("A", A, 2, 2);
-  print_matrix("B", B, 2, 2);
-  print_matrix("C", C, 2, 2);
-
-  mult_strassen(C, B, A, 2);
-  print_matrix("C", C, 2, 2);
-  printf("--------------------------------------------------------------------------------\n");
-  printf("--------------------------------------------------------------------------------\n");
-  printf("--------------------------------------------------------------------------------\n");
-
-  B[0] = B[3] = 2;
-  C[0] = C[1] = C[2] = C[3] = 0;
-  print_matrix("A", A, 2, 2);
-  print_matrix("B", B, 2, 2);
-  print_matrix("C", C, 2, 2);
-  mult_strassen(C, B, A, 2);
-  print_matrix("C", C, 2, 2);
-  {
-    uint32_t A[16*16], B[16*16], C[16*16];
-    uint32_t i;
-    for(i=0; i<16*16; i++) { A[i] = i; B[i] = 0;}
-    for(i=0; i<16; i++) B[17*i] = 2; 
-    print_matrix("A", A, 16, 16);
-    print_matrix("B", B, 16, 16);
-    print_matrix("C", C, 16, 16);
-    mult_strassen(C, B, A, 16);
-    print_matrix("C", C, 16, 16);
-  }
-  {
-    uint32_t A[16], B[16], C[16];
-    uint32_t i;
-    for(i=0; i<16; i++) { A[i] = i; B[i] = i;}
-    print_matrix("A", A, 4, 4);
-    print_matrix("B", B, 4, 4);
-    print_matrix("C", C, 4, 4);
-    mult_strassen(C, B, A, 4);
-    print_matrix("C", C, 4, 4);
-  }
-  {
-    uint32_t A[9], B[9], C[9];
-    uint32_t i;
-    for(i=0; i<9; i++) { A[i] = i; B[i] = i;}
-    print_matrix("A", A, 3, 3);
-    print_matrix("B", B, 3, 3);
-    print_matrix("C", C, 3, 3);
-    mult_strassen(C, B, A, 3);
-    print_matrix("C", C, 3, 3);
-  }
-
-
-
-
-  printf("Ala ma asa\n");
-  printf("Mem needed for array size %d = %d\n", size, get_extra_array_size(size));
-  return 0;
-}
 
