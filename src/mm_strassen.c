@@ -343,4 +343,3 @@ int32_t mult_strassen(data_t *C, data_t *B, data_t *A, const uint32_t N)
   return 0;
 }
 
-

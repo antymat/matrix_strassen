@@ -7,7 +7,7 @@
 */
 
 
-
+#include <assert.h>
 #include "mm_classic.h"
 
 /**
@@ -28,8 +28,9 @@ void mult_classic(data_t *C, data_t *B, data_t *A, const uint32_t N)
     for(j=0; j<N; j++) {
       C[i*N+j] = 0;
       for(k=0; k<N; k++) {
-        C[i*n+j] += A[i*N+k] * B[k*N+j];
+        C[i*N+j] += A[i*N+k] * B[k*N+j];
       }
     }
   }
 }
+
