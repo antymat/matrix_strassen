@@ -18,6 +18,25 @@
 #define VERBOSE_PRINT_COMMENT 0x04
 #define VERBOSE_PRINT_INPUT_MATRICES 0x08
 
+
+/**
+* @brief Adding value on matrix's diagonal.
+*
+* @param A matrix
+* @param dim matrix dimension
+* @param val value to add.
+*/
+void doctor_matrix(data_t *A, const uint32_t dim, const data_t val) {
+  uint32_t i;
+  const uint32_t diag = dim + 1;
+  assert(A);
+  for(i=0; i<dim; i++) {
+    *A += val;
+    A += diag;
+  }
+}
+
+
 /**
 * @brief Testing multiplicatoin functions. 
 *
@@ -38,10 +57,12 @@ void mult_test(char* name, void (*func)(data_t *, data_t *, data_t *, const uint
   if(v&VERBOSE_PRINT_COMMENT) 
     printf("--------------%s----------------------------------------------------------\n", name);
   before = clock();
+  doctor_matrix(B, dim, 1);
   func(C, B, A, dim);
+  doctor_matrix(B, dim, -1);
   after = clock();
   if(v&VERBOSE_PRINT_TIME)
-    printf("C=A*B  (%d x %d) in  %7.2f secs\n", dim, dim, (float)(after - before)/ CLOCKS_PER_SEC);
+    printf("C=A+A*B  (%d x %d) in  %7.2f secs\n", dim, dim, (float)(after - before)/ CLOCKS_PER_SEC);
   if(v&VERBOSE_PRINT_OUTPUT_MATRIX)
     print_matrix("C", C, dim, dim);
   if(v&VERBOSE_PRINT_COMMENT) 
