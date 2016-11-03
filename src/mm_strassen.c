@@ -37,20 +37,6 @@ void print_matrix(uint8_t *name, data_t *A, uint32_t row_len, uint32_t dim)
   }
 }
 
-//size_t get_extra_array_size(uint32_t N)
-//{
-//  size_t ret = 0;
-//  //normalize the dimension to be "2^n - 1" (MSBs only 0, LSBs only 1)
-//  LSB_BIT_FILL(ret, N-1);
-//  ++ret;                          //make it power of 2 (ret = 2^n)
-//  assert(CHECK_POWER_OF_2(ret));  //check that
-//  ret *= ret;                     //geometric series with base 4, and the power the same as above - so square it (now ret = 4^n)
-//  --ret;                          //finish the numerator (4^n - 1)
-//  ret /= (4 - 1);                 //divide by the denominator ((4^n - 1)/(4 - 1))
-//  //now ret = SUM(i=0,n){4^i}
-//  return ret * HELPER_ARRAY_CNT; //we need some helper arrays.
-//}
-
 
 /**
 * @brief result = A - B
@@ -309,7 +295,7 @@ void mult_strassen(data_t *C, data_t *B, data_t *A, const uint32_t N)
   assert(C);
   assert(N);
 
-  //check, if the matrix is on 2^n x 2^n
+  //check, if the matrix is 2^n x 2^n
   if(!CHECK_POWER_OF_2(dim)) {
     //we have some expanding to do - but only once
     //first - get the dimension up to 2^n>N>2^(n-1)
