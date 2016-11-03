@@ -4,6 +4,11 @@
 * @author Marcin Wolcendorf
 * @version 0.1
 * @date 2016-10-28
+*
+* References:
+* http://mathworld.wolfram.com/StrassenFormulas.html
+* https://en.wikipedia.org/wiki/Strassen_algorithm
+*
 */
 #include <assert.h>
 #include <stdio.h>
@@ -11,6 +16,14 @@
 #include "mm_strassen.h"
 
 
+/**
+* @brief Helper function for matrix printing. 
+*
+* @param name Matrix name
+* @param A matrix
+* @param row_len A row length
+* @param dim A dimension
+*/
 void print_matrix(uint8_t *name, data_t *A, uint32_t row_len, uint32_t dim) 
 {
   uint32_t i, j;
