@@ -55,7 +55,7 @@
 #define MATRIX_PARTITION(M, M_row_len, dx, dy) ((M) + (dx) + (M_row_len) * (dy))
 
 void print_matrix(uint8_t *name, data_t *A, uint32_t row_len, uint32_t dim);
-int32_t mult_strassen(data_t *C, data_t *B, data_t *A, const uint32_t N);
+void mult_strassen(data_t *C, data_t *B, data_t *A, const uint32_t N);
 
 
 #endif /* __MM_STRASSEN_H__ */

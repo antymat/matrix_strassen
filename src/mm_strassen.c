@@ -294,10 +294,8 @@ void static inline matrix_copy(data_t *N, uint32_t N_dim, data_t *O, uint32_t O_
 * @param B - multiplier,
 * @param A - multiplicand,
 * @param N - dimension (like N form NxN).
-*
-* @return No idea yet.
 */
-int32_t mult_strassen(data_t *C, data_t *B, data_t *A, const uint32_t N)
+void mult_strassen(data_t *C, data_t *B, data_t *A, const uint32_t N)
 {
   data_t *LA = A, *LB = B, *LC = C; // local copies of parameter matrices. 
   uint32_t dim = N; //this will be the 2^n dimension value.
@@ -353,6 +351,5 @@ int32_t mult_strassen(data_t *C, data_t *B, data_t *A, const uint32_t N)
   }
   free(helper);
   helper=NULL;
-  return 0;
 }
 
